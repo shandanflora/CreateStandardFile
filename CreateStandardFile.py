@@ -8,14 +8,12 @@ from SrcFormat import ObjItem
 
 
 class createStandardFile(object):
-
     dict_cap_col_no = {}
     dict_res_col_no = {}
 
     cap_no = 0
     cap_other = 0
     res_no = 0
-    res_other = 0
 
     dict_standard_cap = {}
     dict_standard_res = {}
@@ -126,9 +124,10 @@ class createStandardFile(object):
                                                        'L']})
 
     @classmethod
-    def write_content(cls, book):
+    def write_content(cls, book, dict_in_other):
         cls.write_data(book, cls.dict_standard_cap, 0)
         cls.write_data(book, cls.dict_standard_res, len(cls.dict_standard_cap))
+        cls.add_other_to_dict(dict_in_other)
         cls.write_data(book, cls.dict_standard_other,
                        len(cls.dict_standard_cap) + len(cls.dict_standard_res))
 
@@ -252,8 +251,11 @@ class createStandardFile(object):
         cls.dict_standard_other[no] = obj_item
 
     @classmethod
-    def add_other_to_dict(cls):
-        for i in
+    def add_other_to_dict(cls, dict_other_src):
+        for i in dict_other_src:
+            cls.update_dict_other(dict_other_src[i], cls.cap_other)
+            cls.cap_other += 1
+        pass
 
     @classmethod
     def find_first(cls, str_value, sheet, col):
@@ -349,9 +351,8 @@ class createStandardFile(object):
             cls.cap_other += 1
 
     @classmethod
-    def write_excel(cls, lib_cas, lib_res, dict_para_cap, dict_para_res):
-        file = '123.xlsx'
-        book_obj = xlsxwriter.Workbook(file)
+    def write_excel(cls, lib_cas, lib_res, obj_file, dict_para_cap, dict_para_res, dict_in_other):
+        book_obj = xlsxwriter.Workbook(obj_file)
         sheet = book_obj.add_worksheet('电子BOM')
         cls.col_width(sheet, 20)
         cls.write_head(book_obj)  # write sheet head
@@ -373,20 +374,31 @@ class createStandardFile(object):
             src_data = dict_para_res[i]
             cls.find_res_data_item(src_data, sheet_res)
 
-        cls.write_content(book_obj)
+        cls.write_content(book_obj, dict_in_other)
 
         sheet.freeze_panes(3, 0)
         book_obj.close()
+
+        # clear data
+        cls.dict_cap_col_no = {}
+        cls.dict_res_col_no = {}
+        cls.cap_no = 0
+        cls.cap_other = 0
+        cls.res_no = 0
+        cls.dict_standard_cap = {}
+        cls.dict_standard_res = {}
+        cls.dict_standard_other = {}
+
         print('write excel successfully!!!')
 
 
-if __name__ == "__main__":
-    parseData = ParseData()
-    parseData.readSrcFile('/Users/user-b016/Desktop/111/test/LX850_MB_V2.3(AD18 Export).xls')
-    dict_cap = parseData.get_dict_cap()
-    dict_res = parseData.get_dict_res()
-    dict_other = parseData.get_dict_other()
-    file_cas = '/Users/user-b016/Desktop/111/test/普通贴片电容_Yageo.xls'
-    file_res = '/Users/user-b016/Desktop/111/test/普通贴片电阻_Yageo.xls'
-    create_file = createStandardFile()
-    create_file.write_excel(file_cas, file_res, dict_cap, dict_res)
+# if __name__ == "__main__":
+#     parseData = ParseData()
+#     parseData.readSrcFile('/Users/user-b016/Desktop/111/test/LX850_MB_V2.3(AD18 Export).xls')
+#     dict_cap = parseData.get_dict_cap()
+#     dict_res = parseData.get_dict_res()
+#     dict_other = parseData.get_dict_other()
+#     file_cas = '/Users/user-b016/Desktop/111/test/普通贴片电容_Yageo.xls'
+#     file_res = '/Users/user-b016/Desktop/111/test/普通贴片电阻_Yageo.xls'
+#     create_file = createStandardFile()
+#     create_file.write_excel(file_cas, file_res, dict_cap, dict_res, dict_other)
